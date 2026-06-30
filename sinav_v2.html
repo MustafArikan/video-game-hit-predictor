@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Game Hit Predictor — Kapsamlı Sınav Rehberi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --white:#ffffff; --off:#f9f8f6; --border:#e8e5e0;
+    --text:#1a1814; --muted:#7a756c; --accent:#2d5a3d; --accent-light:#e8f0eb;
+    --easy:#1a6b3c; --easy-bg:#edf7f1; --easy-tag:#c8edd9;
+    --med:#8b5a00;  --med-bg:#fef6e4;  --med-tag:#fde8b0;
+    --hard:#9b2335; --hard-bg:#fdf0f2; --hard-tag:#f9cdd4;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Instrument Sans',sans-serif;background:var(--white);color:var(--text);line-height:1.6}
+
+  header{border-bottom:1px solid var(--border);padding:40px 0 32px;background:var(--white);position:sticky;top:0;z-index:100}
+  .hi{max-width:900px;margin:0 auto;padding:0 32px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+  .hi h1{font-family:'DM Serif Display',serif;font-size:clamp(19px,2.8vw,29px);font-weight:400;letter-spacing:-.02em;line-height:1.15}
+  .hi p{font-size:11.5px;color:var(--muted);margin-top:5px;font-family:'DM Mono',monospace}
+  .pills{display:flex;gap:8px;flex-shrink:0;align-items:center;flex-wrap:wrap}
+  .pill{font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:100px;font-weight:500;letter-spacing:.04em;white-space:nowrap}
+  .pe{background:var(--easy-tag);color:var(--easy)} .pm{background:var(--med-tag);color:var(--med)} .ph{background:var(--hard-tag);color:var(--hard)}
+
+  .metrics{max-width:900px;margin:24px auto 0;padding:0 32px}
+  .metrics-inner{background:var(--off);border:1px solid var(--border);border-radius:10px;padding:14px 20px;display:flex;gap:0;flex-wrap:wrap}
+  .m{display:flex;flex-direction:column;gap:2px;padding:0 20px;border-right:1px solid var(--border)}
+  .m:last-child{border-right:none} .m:first-child{padding-left:0}
+  .ml{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace}
+  .mv{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--accent)}
+
+  .prog-wrap{max-width:900px;margin:16px auto 0;padding:0 32px;display:flex;align-items:center;gap:12px}
+  .prog-track{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+  .prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;width:0}
+  .prog-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+
+  .controls{max-width:900px;margin:22px auto 0;padding:0 32px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+  .sb{flex:1;min-width:180px;border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-family:'Instrument Sans',sans-serif;font-size:14px;color:var(--text);outline:none;background:var(--white);transition:border-color .15s}
+  .sb:focus{border-color:var(--accent)} .sb::placeholder{color:var(--muted)}
+  .fb{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.03em;padding:7px 12px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s}
+  .fb:hover{border-color:var(--accent);color:var(--accent)}
+  .fb.aa{background:var(--text);color:#fff;border-color:var(--text)}
+  .fb.ae{background:var(--easy-tag);color:var(--easy);border-color:var(--easy-tag)}
+  .fb.am{background:var(--med-tag);color:var(--med);border-color:var(--med-tag)}
+  .fb.ah{background:var(--hard-tag);color:var(--hard);border-color:var(--hard-tag)}
+  .eb{font-family:'DM Mono',monospace;font-size:11px;padding:7px 12px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:var(--white);color:var(--muted);transition:all .15s;margin-left:auto}
+  .eb:hover{background:var(--off)}
+
+  main{max-width:900px;margin:34px auto 80px;padding:0 32px}
+  .no-res{text-align:center;padding:60px;color:var(--muted);font-size:14px;display:none}
+
+  .sec{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:46px 0 13px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .si{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;font-size:10px;font-weight:600}
+  .se .si{background:var(--easy-tag);color:var(--easy)} .sm .si{background:var(--med-tag);color:var(--med)} .sh .si{background:var(--hard-tag);color:var(--hard)}
+
+  .card{border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color .2s,box-shadow .2s;background:var(--white)}
+  .card:hover{border-color:#ccc;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+  .card.hidden{display:none}
+  .ch{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;cursor:pointer;user-select:none}
+  .qn{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);flex-shrink:0;margin-top:2px;min-width:26px}
+  .qt{font-size:14px;font-weight:500;flex:1;color:var(--text);line-height:1.5}
+  .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:7px}
+  .de{background:var(--easy)} .dm{background:var(--med)} .dh{background:var(--hard)}
+  .cv{flex-shrink:0;width:16px;height:16px;color:var(--muted);transition:transform .2s;margin-top:2px}
+  .card.open .cv{transform:rotate(180deg)}
+  .cb{display:none;padding:0 18px 18px 56px;border-top:1px solid var(--border);background:var(--off);animation:fi .15s ease}
+  .card.open .cb{display:block}
+  @keyframes fi{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+  .ans{font-size:13.5px;color:#2e2a24;line-height:1.8;padding-top:14px}
+  .ans code{font-family:'DM Mono',monospace;font-size:12px;background:#ede9e2;border-radius:4px;padding:1px 6px;color:var(--accent)}
+  .ans strong{color:var(--text)}
+  .ans ul{padding-left:20px} .ans ol{padding-left:20px}
+  .ans li{margin-bottom:5px}
+  .hl{background:var(--accent-light);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 6px 6px 0;margin-top:10px;font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);line-height:1.8}
+  .box{background:#f3f0eb;border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;line-height:1.75}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  .cmp-col{background:#f9f8f6;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7}
+  .cmp-col strong{display:block;margin-bottom:4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-family:'DM Mono',monospace}
+  .tip{background:#fff8e1;border-left:3px solid #f9a825;padding:9px 13px;border-radius:0 6px 6px 0;margin-top:10px;font-size:13px;color:#5d4037}
+  .tip strong{color:#e65100}
+  @media(max-width:600px){.cmp{grid-template-columns:1fr}.hi{flex-direction:column}main,.controls,.prog-wrap,.metrics{padding:0 18px}.cb{padding-left:18px}.qn{display:none}header{padding:20px 0 16px}.m{padding:0 12px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hi">
+    <div>
+      <h1>Video Game Hit Predictor<br><em>Kapsamlı Sınav &amp; Sunum Rehberi</em></h1>
+      <p>DNN + XGBoost Ensemble · Target Encoding · SMOTE · RandomizedSearchCV · 70 Soru</p>
+    </div>
+    <div class="pills">
+      <span class="pill pe">● Kolay</span>
+      <span class="pill pm">● Orta</span>
+      <span class="pill ph">● Zor</span>
+    </div>
+  </div>
+</header>
+
+<div class="metrics">
+  <div class="metrics-inner">
+    <div class="m"><span class="ml">Accuracy</span><span class="mv">89.38%</span></div>
+    <div class="m"><span class="ml">Precision</span><span class="mv">56.87%</span></div>
+    <div class="m"><span class="ml">Recall</span><span class="mv">58.36%</span></div>
+    <div class="m"><span class="ml">F1 Score</span><span class="mv">57.61%</span></div>
+    <div class="m"><span class="ml">AUC-ROC</span><span class="mv">89.21%</span></div>
+    <div class="m"><span class="ml">Features</span><span class="mv">12</span></div>
+    <div class="m"><span class="ml">Modeller</span><span class="mv">Ensemble</span></div>
+  </div>
+</div>
+
+<div class="prog-wrap">
+  <span class="prog-label" id="plabel">0 / 70 açıldı</span>
+  <div class="prog-track"><div class="prog-fill" id="pfill"></div></div>
+</div>
+
+<div class="controls">
+  <input class="sb" type="search" placeholder="Soru veya kavram ara..." id="si">
+  <div style="display:flex;gap:7px;flex-wrap:wrap">
+    <button class="fb aa" data-f="all">Tümü</button>
+    <button class="fb" data-f="easy">Kolay</button>
+    <button class="fb" data-f="medium">Orta</button>
+    <button class="fb" data-f="hard">Zor</button>
+  </div>
+  <button class="eb" id="ea">Tümünü Aç</button>
+</div>
+
+<main>
+<div class="no-res" id="nr">Aramanızla eşleşen soru bulunamadı.</div>
+
+<!-- ══════════════════ KOLAY ══════════════════ -->
+<div class="sec se"><span class="si">01</span>KOLAY — Proje Temelleri</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q1</span><span class="qt">Bu proje ne yapıyor? Amacı ne?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Bir video oyununun yayınlanmadan önce mevcut verilerle (platform, tür, yayıncı, eleştirmen puanı vb.) ticari olarak başarılı olup olmayacağını tahmin eden <strong>ikili sınıflandırma (binary classification)</strong> sistemi.<br><br>
+Tanım: 1 milyonun üzerinde küresel satış yapan oyun <strong>Hit = 1</strong>, altında kalan <strong>Hit = 0</strong>. Çıktı "evet/hayır" — olasılık değil, net bir karar.
+<div class="tip"><strong>Sunum cümlesi:</strong> "Bu proje, bir oyun piyasaya sürülmeden önce yatırımcılara 'Bu oyun hit olacak mı?' sorusunu yanıtlamak için tasarlandı."</div>
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q2</span><span class="qt">Makine öğrenmesi nedir? Bu projede ne işe yarıyor?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Makine öğrenmesi, bilgisayarın <strong>veriden kalıp öğrenerek</strong> kural yazılmadan tahmin yapmasını sağlayan yöntemler bütünüdür. Geleneksel programlamada kurallar elle yazılır; ML'de model bu kuralları veriden kendisi çıkarır.<br><br>
+Bu projede: 16.000'den fazla oyunun geçmiş satış/puan verisi verildi, model "hangi özellikler hit ile birlikte geliyor?" kalıbını öğrendi. Yeni bir oyun geldiğinde bu öğrenilmiş kalıbı kullanarak tahmin yapıyor.
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q3</span><span class="qt">Sınıflandırma (classification) nedir? Regresyondan farkı ne?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="cmp">
+  <div class="cmp-col"><strong>Sınıflandırma (bizim problemimiz)</strong>Çıktı bir kategori. "Hit mi?" → Evet/Hayır. Model olasılık üretir, threshold ile karar verir.</div>
+  <div class="cmp-col"><strong>Regresyon</strong>Çıktı sürekli bir sayı. "Kaç milyon satar?" → 2.7M, 0.3M gibi. Loss olarak MSE kullanılır.</div>
+</div>
+Bizim problemimiz binary classification: sadece 2 sınıf (0 ve 1). Çıkış katmanında <code>sigmoid</code> + <code>binary_crossentropy</code> loss kullanıldı.
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q4</span><span class="qt">Veri seti nedir? Kaç satır, kaç sütun var?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Kaggle'daki <em>Video Games Sales with Ratings</em> veri seti. Ham hali: <strong>16.719 satır, 16 sütun</strong>. Temizleme sonrası 16.450 satır kaldı.<br><br>
+Sütunlar: Name, Platform, Year_of_Release, Genre, Publisher, NA_Sales, EU_Sales, JP_Sales, Other_Sales, <strong>Global_Sales</strong>, Critic_Score, Critic_Count, User_Score, User_Count, Developer, Rating. Global_Sales sadece label oluşturmak için kullanıldı.
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q5</span><span class="qt">Projede kaç Python sınıfı (class) var? Her birinin görevi ne?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>4 sınıf:</strong>
+<ul>
+  <li><strong>DataLoader</strong>: CSV okur, temizler, feature üretir, encode eder. Ana veri hattı.</li>
+  <li><strong>DataAnalyzer</strong>: NumPy ile istatistik hesaplar (mean, std, median vb.), rapor yazar.</li>
+  <li><strong>Visualizer</strong>: Matplotlib ile 9 adet PNG grafik üretir ve kaydeder.</li>
+  <li><strong>ModelTrainer</strong>: DNN + XGBoost ensemble'ı eğitir, değerlendirir, rapor yazar.</li>
+</ul>
+Her sınıf tek bir sorumluluğa sahip — bu yazılım mühendisliğinde <strong>Single Responsibility Principle</strong> olarak bilinir.
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q6</span><span class="qt">Hedef değişken (target) ne? Nasıl oluşturuldu?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><code>Hit</code> sütunu. Global_Sales > 1.0 milyon kopya ise <strong>1</strong>, değilse <strong>0</strong>.
+<div class="hl">df["Hit"] = (df["Global_Sales"] > 1.0).astype(int)</div>
+Sonuç: 16.450 oyunun yalnızca <strong>2.035'i hit (%12.4)</strong>, 14.415'i hit değil (%87.6). Bu dengesiz dağılım projenin en büyük zorluğu.
+<div class="tip"><strong>Kritik:</strong> Global_Sales model feature'ı olarak KULLANILMADI. Sadece bu label'ı oluşturmak için kullanıldı.</div>
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q7</span><span class="qt">Modelde kaç feature var? Hangileri?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>12 feature</strong>, 3 kategoride:
+<div class="hl">— Orijinal sayısal (5) —<br>Year_of_Release, Critic_Score, User_Score, Critic_Count, Rating<br><br>— Eksik veri bayrakları (2) —<br>Has_Critic_Score, Has_User_Score<br><br>— Mühendislik ürünleri (5) —<br>Publisher_target_enc, Genre_target_enc, Platform_target_enc,<br>Platform_avg_score, Publisher_game_count</div>
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q8</span><span class="qt">Son modelin metrikleri neler? Kısaca yorumla.</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="hl">Accuracy : 89.38%  ← toplam doğru tahmin oranı<br>Precision: 56.87%  ← "hit" dediğimizin gerçekten hit olma oranı<br>Recall   : 58.36%  ← gerçek hitlerden yakaladıklarımız<br>F1 Score : 57.61%  ← precision + recall dengesi<br>AUC-ROC  : 89.21%  ← eşikten bağımsız sıralama kalitesi</div>
+İlk versiyona kıyasla: F1 <strong>%49 → %58</strong>, Recall <strong>%45 → %58</strong> (+13 puan), AUC <strong>%85 → %89</strong>.
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q9</span><span class="qt">Train, validation ve test seti neden 3'e bölündü?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="cmp">
+  <div class="cmp-col"><strong>Train (%70 = 11.514 örnek)</strong>Model bu veriyle öğrenir. Ağırlıklar burada güncellenir.</div>
+  <div class="cmp-col"><strong>Validation (%15 = 2.468)</strong>Eğitim sırasında EarlyStopping ve threshold optimizasyonu için kullanılır. Model bunu "görmeden" değerlendirir.</div>
+</div>
+<div class="cmp" style="margin-top:8px">
+  <div class="cmp-col"><strong>Test (%15 = 2.468)</strong>Hiçbir kararın verilmediği gerçek dünya simülasyonu. Final metrikler buradan alınır.</div>
+  <div class="cmp-col"><strong>Neden 2 değil 3?</strong>Eğer val=test olursa threshold optimizasyonu test verisine "bakarak" yapılır → data leakage.</div>
+</div>
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q10</span><span class="qt">Projede hangi kütüphaneler kullanıldı? Her birinin rolü ne?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<ul>
+  <li><strong>Pandas</strong>: CSV okuma, dataframe temizleme, groupby/map işlemleri</li>
+  <li><strong>NumPy</strong>: sayısal diziler, float32 dönüşümleri, NaN kontrolü, threshold döngüsü</li>
+  <li><strong>Matplotlib / Seaborn</strong>: 9 adet veri analizi ve model karşılaştırma grafiği</li>
+  <li><strong>Scikit-learn</strong>: train_test_split, StandardScaler, metrikler, RandomizedSearchCV</li>
+  <li><strong>imbalanced-learn</strong>: SMOTE (sınıf dengesizliği çözümü)</li>
+  <li><strong>TensorFlow / Keras</strong>: Dense Neural Network tanımlama, eğitme, callback'ler</li>
+  <li><strong>XGBoost</strong>: gradient boosted decision tree, hiperparametre arama ile birleşik</li>
+</ul>
+</div></div>
+</div>
+
+<div class="card" data-level="easy">
+<div class="ch"><span class="qn">Q11</span><span class="qt">Projede kaç grafik üretiliyor? Hangileri?</span><span class="dot de"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>9 grafik</strong> <code>outputs/graphs/</code> klasörüne PNG olarak kaydedilir:
+<ul>
+  <li>01–07: Veri analizi grafikleri (satış dağılımı, platform karşılaştırması, puan korelasyonu, tür analizi, hit oranı dağılımı, yıl bazlı trend, yayıncı analizi)</li>
+  <li>08: Confusion matrix — modelin tahmin hatalarını 2×2 matris olarak gösterir</li>
+  <li>09: Grouped bar chart — Baseline model vs İyileştirilmiş model karşılaştırması (mavi=eski, yeşil=yeni)</li>
+</ul>
+</div></div>
+</div>
+
+<!-- ══════════════════ ORTA ══════════════════ -->
+<div class="sec sm"><span class="si">02</span>ORTA — Sinir Ağı &amp; Model Mimarisi</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q12</span><span class="qt">DNN (Dense Neural Network) nedir? Neden kullandın?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>Dense Neural Network</strong> (Tam Bağlantılı Sinir Ağı): her nöronun bir önceki katmandaki tüm nöronlara bağlı olduğu yapay sinir ağı türü. "Dense" = yoğun bağlantı demek.<br><br>
+<strong>Neden DNN?</strong>
+<ul>
+  <li>Feature'lar arasındaki <em>doğrusal olmayan (non-linear) ilişkileri</em> öğrenebilir. Örn. "yüksek Critic_Score + büyük yayıncı + belirli platform" kombinasyonu tek başına linear bir model için zordur.</li>
+  <li>Proje yönergesi TensorFlow/Keras kullanımını şart koşuyor.</li>
+  <li>Farklı büyüklükteki katmanlarla modelin kapasitesi kolayca ayarlanabilir.</li>
+</ul>
+<div class="tip"><strong>Basit anlatım:</strong> "Beyin hücrelerinden esinlenen matematik katmanları. Her katman öncekinin öğrendiklerini alıp daha soyut bir temsil üretir."</div>
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q13</span><span class="qt">Sinir ağında "nöron" ve "katman" ne demek?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>Nöron:</strong> bir sayı (aktivasyon değeri). Önceki katmandan gelen tüm değerleri ağırlıklı toplar, bias ekler, aktivasyon fonksiyonundan geçirir:
+<div class="hl">output = activation(w₁x₁ + w₂x₂ + ... + wₙxₙ + b)</div>
+<strong>Katman:</strong> aynı işlemi paralel yapan nöron grubu. Bizim mimaride:<br>
+• <strong>Input katmanı</strong>: 12 feature → 12 sayı girer<br>
+• <strong>Gizli katmanlar</strong>: 128, 64, 32 nöron — örüntüyü öğrenen kısım<br>
+• <strong>Çıkış katmanı</strong>: 1 nöron → 0-1 arası olasılık
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q14</span><span class="qt">ReLU aktivasyon fonksiyonu nedir? Neden sigmoid yerine gizli katmanlarda kullanıldı?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>ReLU (Rectified Linear Unit):</strong> <code>f(x) = max(0, x)</code>. Negatif değerleri sıfırlar, pozitif değerleri olduğu gibi geçirir.
+<div class="hl">ReLU(-3.2) = 0<br>ReLU(0)   = 0<br>ReLU(4.7) = 4.7</div>
+<strong>Neden gizli katmanlarda ReLU?</strong>
+<ul>
+  <li><em>Vanishing gradient</em> sorununu azaltır (sigmoid'in türevi sıfıra yaklaşır)</li>
+  <li>Hesaplama çok basit → eğitim hızlı</li>
+  <li>Negatif değerleri keserek seyreklik (sparsity) yaratır → overfitting azalır</li>
+</ul>
+<strong>Neden çıkışta sigmoid?</strong> Sigmoid çıktıyı 0-1 arasına sıkıştırır → olasılık yorumu yapılabilir. Binary cross-entropy ile matematiksel uyum sağlar.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q15</span><span class="qt">Sigmoid fonksiyonu nedir? Matematiksel formülü ne?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><div class="hl">σ(x) = 1 / (1 + e^(-x))</div>
+Her gerçek sayıyı 0-1 arasına dönüştürür:<br>
+σ(-∞) → 0, σ(0) = 0.5, σ(+∞) → 1<br><br>
+Modelimiz için: çıkış 0.5 üstündeyse hit olasılığı yüksek. Fakat biz threshold'u 0.5'te bırakmadık — validation F1'i maximize eden değerde (örn. 0.47) sabitledi.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q16</span><span class="qt">Binary Cross-Entropy loss nedir? Neden bu seçildi?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><div class="hl">Loss = -(y·log(ŷ) + (1-y)·log(1-ŷ))</div>
+y = gerçek etiket (0 veya 1), ŷ = modelin sigmoid çıktısı (0-1 arası).<br><br>
+<strong>Nasıl çalışır?</strong><br>
+• Gerçek = 1, tahmin = 0.95 → ceza küçük (iyi tahmin)<br>
+• Gerçek = 1, tahmin = 0.05 → ceza çok büyük (kötü tahmin)<br>
+• Gerçek = 0, tahmin = 0.02 → ceza küçük<br><br>
+Sigmoid çıkışıyla türevi analitik olarak hesaplanabilir → gradient descent için ideal. İkili sınıflandırmada standart seçim.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q17</span><span class="qt">Adam optimizer nedir? SGD'den farkı ne?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>SGD (Stochastic Gradient Descent)</strong>: tüm parametreler için aynı learning rate kullanır. Yavaş yakınsar, LR ayarı kritik.<br><br>
+<strong>Adam (Adaptive Moment Estimation)</strong>: her parametre için ayrı learning rate tutar. İki moment tahminini birleştirir:<br>
+• <em>m</em> (1. moment): gradient'lerin ağırlıklı ortalaması (momentum)<br>
+• <em>v</em> (2. moment): gradient karelerinin ortalaması (RMSProp etkisi)<br><br>
+Sonuç: büyük gradient'li yönlerde daha dikkatli, küçük gradient'li yönlerde daha hızlı güncelleme. Pratikte çoğu problemde SGD'ye göre daha az ayar gerektirir. <code>lr=1e-3</code> standart başlangıç değeri.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q18</span><span class="qt">Dropout nedir? Oranları nasıl seçildi?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Her eğitim adımında (mini-batch) nöronların belirtilen oranı <strong>rastgele sıfırlanır</strong>. Model belirli nöronlara bağımlı olmayı öğrenemez → genelleme artar → overfitting azalır.<br><br>
+<div class="hl">Dense(128) → Dropout(0.4)  ← 40 nöron aktif kalır, 53 kapatılır<br>Dense(64)  → Dropout(0.3)  ← 45 aktif, 19 kapatılır<br>Dense(32)  → Dropout(0.2)  ← 26 aktif, 6 kapatılır</div>
+<strong>Neden katmana göre farklı?</strong> İlk katmanlar daha fazla nöron içerdiğinden dropout etkisi daha az; son katmanlar dar olduğundan daha az agresif dropout uygulandı. Test sırasında dropout kapalı — tüm nöronlar aktif.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q19</span><span class="qt">BatchNormalization nedir? Neden eklendi?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Dense katmanının çıktısını bir sonraki katmana geçmeden önce <strong>normalize eder</strong>: mini-batch içindeki her özelliğin ortalamasını 0, standart sapmasını 1 yapar; sonra öğrenilebilir γ ve β parametreleriyle yeniden ölçekler.<br><br>
+<strong>Faydaları:</strong>
+<ul>
+  <li>Eğitimi hızlandırır (daha yüksek LR kullanılabilir)</li>
+  <li>İç kovaryat kaymasını (internal covariate shift) azaltır</li>
+  <li>Hafif regularizasyon etkisi — overfitting'i azaltır</li>
+  <li>Gradient akışını iyileştirir</li>
+</ul>
+Dense(128) ve Dense(64)'ten sonra eklendi; küçük Dense(32)'de eklenmedi çünkü son katmana yakın BatchNorm bazen performansı düşürür.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q20</span><span class="qt">EarlyStopping nasıl çalışır? Parametreleri ne anlama geliyor?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="hl">EarlyStopping(<br>  monitor="val_loss",   # val loss izle<br>  patience=12,          # 12 epoch boyunca iyileşme olmadıysa dur<br>  restore_best_weights=True  # en iyi epoch'a geri dön<br>)</div>
+<strong>Senaryo:</strong> Epoch 18'de val_loss minimumdur. Epoch 19-30 arası val_loss iyileşmez. Epoch 30'da (18+12) eğitim durur, model epoch 18'in ağırlıklarına döner.<br><br>
+<code>restore_best_weights=True</code> olmadan son epoch'un ağırlıkları kullanılır — bu overfitting olmuş bir nokta olabilir.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q21</span><span class="qt">ReduceLROnPlateau nedir? Neden gerekli?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="hl">ReduceLROnPlateau(<br>  monitor="val_loss",<br>  factor=0.5,    # LR'yi yarıya indir<br>  patience=6,    # 6 epoch iyileşme yoksa tetikle<br>  min_lr=1e-6    # bu değerin altına inme<br>)</div>
+<strong>Neden gerekli?</strong> Model "platoya" takıldığında — yani gradient hâlâ var ama kayboluyor — mevcut LR adım atmak için çok büyük. Daha küçük LR ile ince ayar yapılır. <code>1e-3 → 5e-4 → 2.5e-4 → ...</code> sıralamasıyla gider. <code>min_lr=1e-6</code> sonsuz küçülmeyi önler.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q22</span><span class="qt">L2 regularizasyon nedir? Ne zaman devreye giriyor?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Her güncelleme adımında loss fonksiyonuna <code>λ·Σw²</code> eklenir. Model büyük ağırlık kullanmaya "para öder" → ağırlıklar küçük kalır → overfitting azalır.
+<div class="hl">Toplam Loss = CrossEntropy + λ·(w₁² + w₂² + ... + wₙ²)<br>λ = 1e-4  (küçük etki — eğitimi fazla kısıtlamaz)</div>
+Dropout = rastgele kapama (eğitim zamanı)<br>
+L2 = ağırlık cezası (her adımda aktif)<br>
+İkisi birlikte farklı mekanizmalarla overfitting'i baskılar.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q23</span><span class="qt">Backpropagation (geri yayılım) nasıl çalışır?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>3 adım:</strong><br><br>
+<strong>1. İleri geçiş (Forward Pass):</strong> 12 feature → katmanlar boyunca hesaplama → sigmoid → tahmin üretilir. Loss hesaplanır.<br><br>
+<strong>2. Geri yayılım (Backward Pass):</strong> chain rule (zincirleme türev) ile loss'un her ağırlığa göre kısmi türevi hesaplanır: <code>∂Loss/∂w</code> gradient'i bulunur. Bu, "bu ağırlığı biraz artırsan loss artar mı azalır mı?" sorusunun cevabıdır.<br><br>
+<strong>3. Ağırlık güncelleme:</strong> Adam optimizer gradient'i kullanır: <code>w = w - lr × gradient</code>. Binlerce mini-batch'te tekrarlanır, ağırlıklar loss'u minimize eden değerlere yaklaşır.
+<div class="tip"><strong>Özet:</strong> "Modelin ne kadar yanlış yaptığını ölç, hatayı nereden kaynaklandığını bul, ağırlıkları o yönde biraz düzelt. Bunu milyonlarca kez tekrarla."</div>
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q24</span><span class="qt">Overfitting nedir? Bu projede nasıl önlendi?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>Overfitting:</strong> model eğitim verisini ezberledi, yeni veriye genelleme yapamıyor. Train loss düşük, val/test loss yüksek.<br><br>
+Bu projede <strong>5 farklı önlem</strong> bir arada kullanıldı:
+<ul>
+  <li><strong>Dropout</strong> (0.4, 0.3, 0.2): nöronları rastgele kapatır</li>
+  <li><strong>L2 regularizasyon</strong> (1e-4): büyük ağırlıkları cezalandırır</li>
+  <li><strong>BatchNormalization</strong>: aktivasyonları normalize eder, hafif regularizasyon</li>
+  <li><strong>EarlyStopping</strong> (patience=12): aşırı eğitimi durdurur</li>
+  <li><strong>clipnorm=1.0</strong>: patlamış gradient'leri sınırlar</li>
+</ul>
+</div></div>
+</div>
+
+<!-- ══════════════════ ORTA — VERİ MÜHENDİSLİĞİ ══════════════════ -->
+<div class="sec sm"><span class="si">03</span>ORTA — Veri Ön İşleme &amp; Feature Engineering</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q25</span><span class="qt">Eksik verilerle nasıl başa çıktın? Strateji neydi?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Üç farklı strateji, sütunun özelliğine göre seçildi:
+<div class="hl">Critic_Score, User_Score → fillna(-1)  [sentinel değer]<br>Has_Critic_Score, Has_User_Score → 1/0 flag [eksikliği bilgiye çevir]<br>Critic_Count   → fillna(0)   [puan yoksa sıfır critic]<br>Genre, Rating  → fillna(mode) [en yaygın değer]<br>Publisher      → fillna("Unknown")<br>Year, Sales    → satırı sil  [bu ikisi olmadan label üretilemez]</div>
+Eski yaklaşım medyan ile dolduruyordu → eksik olduğu gerçeği gizleniyordu. Yeni yaklaşım bu gerçeği modele açıkça aktarıyor.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q26</span><span class="qt">-1 sentinel değeri neden seçildi? 0 veya NaN olmaz mıydı?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="cmp">
+  <div class="cmp-col"><strong>NaN kullanılamaz</strong>NumPy dizisi NaN içeriyorsa model hata verir: gradient NaN olur, eğitim çöker.</div>
+  <div class="cmp-col"><strong>0 kullanılmamalı</strong>Critic_Score=0 "çok kötü puan aldı" anlamına gelir. "Puan yoktu" ile karıştırılır.</div>
+</div>
+<strong>-1 neden ideal?</strong> Critic_Score 0-100, User_Score 0-10 arasında. -1 her iki aralığın da dışında — model bu değeri gördüğünde "bu farklı bir durum" kalıbını öğrenebilir. Has_Critic_Score bayraklarıyla da desteklendi.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q27</span><span class="qt">Has_Critic_Score feature'ı neden bu kadar değerli?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Veri setindeki oyunların <strong>%51'inin Critic_Score'u eksik</strong>. Bu tesadüfi değil — küçük, bilinmeyen oyunlar eleştirmen ilgisi almaz. Dolayısıyla "puan yok" bilgisinin kendisi güçlü bir <strong>flop sinyali</strong>.<br><br>
+Medyan ile dolduruluyor olsaydı: model "bu oyunun puanı 71" görür. Oysa gerçek bilgi "bu oyunun hiç puanı yoktu". Has_Critic_Score=0 ile model bu kalıbı doğrudan öğrenebiliyor.
+<div class="hl"># DOĞRU: önce flag yarat, sonra doldur<br>df["Has_Critic_Score"] = df["Critic_Score"].notna().astype(int)<br>df["Critic_Score"]    = df["Critic_Score"].fillna(-1)</div>
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q28</span><span class="qt">Label Encoding nedir? Neden sadece Rating için kullandın?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Label Encoding: her kategoriye 0, 1, 2... gibi sıralı tamsayı atar.
+<div class="hl">E → 0, E10+ → 1, T → 2, M → 3, AO → 4 ...</div>
+<strong>Sorunu:</strong> model 4 > 0 gördüğünde "AO, E'den 4 kat daha büyük" yorumu yapabilir — anlamsız bir sıralama.<br><br>
+<strong>Neden Rating için yeterli?</strong> ESRB rating'inin hit olasılığıyla gerçek bir sıralama ilişkisi var (M-rated oyunlar genellikle daha büyük bütçeli). Sadece 8 değer var → leakage riski düşük.<br><br>
+Publisher, Genre, Platform için label encoding kullanılmadı — bunlar için target encoding çok daha anlamlı.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q29</span><span class="qt">Target Encoding nedir? Adım adım nasıl hesaplanıyor?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Her kategoriyi, o kategorideki Hit oranıyla değiştirir.
+<div class="hl">1. pub_hit_rate = df.groupby("Publisher")["Hit"].mean()<br>   # Nintendo: 41 hit / 100 oyun → 0.41<br>   # EA      : 84 hit / 300 oyun → 0.28<br>   # Küçük X :  0 hit / 5 oyun  → 0.00<br><br>2. df["Publisher_target_enc"] = df["Publisher"].map(pub_hit_rate)<br>   # "Nintendo" metni → 0.41 sayısı</div>
+Label encoding'de Publisher korelasyonu Hit ile ~0.02. Target encoding'de ~0.30 → <strong>15 kat daha bilgilendirici</strong>. Publisher, Genre ve Platform için uygulandı.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q30</span><span class="qt">StandardScaler nedir? Neden gerekli?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Her feature'ı mean=0, std=1 yapacak şekilde dönüştürür:
+<div class="hl">X_scaled = (X - mean) / std</div>
+<strong>Neden gerekli?</strong> Year_of_Release 1980-2016 arasında (yüzlerce), Critic_Score 0-100 arasında, Publisher_target_enc 0-1 arasında. Farklı ölçeklerdeki feature'lar gradient güncellemelerini bozar — büyük sayılar dominant olur.<br><br>
+Ölçeklendirme sonrası tüm feature'lar aynı büyüklük düzeyinde → gradient dengeli akar → model daha hızlı ve kararlı öğrenir.
+<div class="tip"><strong>Önemli:</strong> Scaler YALNIZCA train setine fit edildi. Val ve test sadece transform edildi.</div>
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q31</span><span class="qt">SMOTE nedir? Nasıl çalışır?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>Synthetic Minority Over-sampling Technique.</strong> Azınlık sınıfı için sentetik örnekler üretir:
+<div class="hl">1. Azınlık sınıfından (hit) bir örnek seç<br>2. O örneğin k=5 en yakın komşusunu bul (aynı sınıftan)<br>3. Örnek ve komşulardan biri arasındaki doğru üzerinde<br>   rastgele bir noktaya yeni sentetik örnek yerleştir<br>4. Sınıflar dengelenene kadar tekrarla</div>
+Bizde: %12.4 hit → SMOTE sonrası eğitim setinde <strong>%50 hit</strong>. Model artık "hep 0 de" diyerek yüksek accuracy alamıyor — gerçekten öğrenmesi gerekiyor.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q32</span><span class="qt">Sınıf dengesizliği (class imbalance) neden problem?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Veri setimizde %12.4 hit, %87.6 flop. Model sadece "her şey flop" dese bile:
+<div class="hl">Accuracy = 87.6%  ✓ (yüksek görünür!)<br>Recall   = 0%     ✗ (hiç hit bulamadı)<br>F1       = 0%     ✗ (tamamen işe yaramaz)</div>
+Bu yüzden sadece accuracy'e bakılamaz. Recall, Precision ve F1 gerçek performansı gösterir. SMOTE eğitimi dengeler; test/val'ı gerçek dağılımda bırakarak dürüst ölçüm yapılır.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q33</span><span class="qt">Publisher_game_count ve Platform_avg_score neden eklendi?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>Publisher_game_count</strong>: bu yayıncının veri setindeki toplam oyun sayısı. Büyük yayıncılar (EA, Activision, Nintendo) daha iyi dağıtım ağlarına, pazarlama bütçelerine sahip. 300 oyun çıkarmış EA, 2 oyun çıkarmış küçük stüdyodan farklı.<br><br>
+<strong>Platform_avg_score</strong>: platformdaki tüm oyunların ortalama Critic_Score'u (yalnızca puanlı oyunlardan). PS4 ortalaması PC ortalamasından farklı → platform kalitesi ve kitle beklentisi. Önemli: -1 ile doldurulmuş oyunlar bu hesaplamaya dahil edilmedi.
+</div></div>
+</div>
+
+<!-- ══════════════════ ORTA — ENSEMBLE & XGBOOST ══════════════════ -->
+<div class="sec sm"><span class="si">04</span>ORTA — XGBoost, Ensemble &amp; Optimizasyon</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q34</span><span class="qt">XGBoost nedir? Karar ağacından farkı ne?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>Karar ağacı:</strong> veriyi dallara bölerek sınıflandırır. "Critic_Score > 75 ise sağa git" gibi kurallar öğrenir. Tek başına genelleme zayıf.<br><br>
+<strong>XGBoost (Extreme Gradient Boosting):</strong> yüzlerce karar ağacını sırayla eğitir. Her yeni ağaç bir öncekinin <em>hatalarını düzeltmeye</em> çalışır. Gradient descent loss fonksiyonu üzerinde uygulanır → adı "gradient boosting".
+<div class="hl">Tahmin = Ağaç₁ + Ağaç₂ + Ağaç₃ + ... + Ağaçₙ<br>          (her ağaç önceki hataları düzeltir)</div>
+Tabular veride DNN'e genellikle eşdeğer veya üstün. Outlier'lara dayanıklı, kategorik verileri iyi işler.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q35</span><span class="qt">Ensemble nedir? Neden iki modeli birleştirdin?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Birden fazla modelin tahminlerini birleştirerek tek modelden daha iyi sonuç elde etme yöntemi.<br><br>
+<strong>Neden çalışır?</strong> DNN ve XGBoost farklı mekanizmalar kullanır. Her modelin yanlış tahmin ettiği örnekler farklı. Birinin zayıf olduğu yerde diğeri güçlü → ortalaması ikisinden de iyi.
+<div class="hl">ensemble_prob = (dnn_prob + xgb_prob) / 2.0</div>
+50-50 ağırlık seçildi çünkü iki modelin validation F1'i benzerdi. Eğer biri belirgin şekilde iyiydi, o modele daha fazla ağırlık verilebilirdi.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q36</span><span class="qt">RandomizedSearchCV nedir? Hangi parametreler arandı?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Belirtilen parametre uzayından rastgele kombinasyonlar seçerek cross-validation ile değerlendiren hiperparametre optimizasyon aracı.
+<div class="hl">n_iter=30, cv=3, scoring="f1"<br>→ 30 kombinasyon × 3 fold = 90 model eğitildi</div>
+<strong>Aranan parametreler:</strong>
+<ul>
+  <li><code>n_estimators</code>: kaç ağaç [200, 300, 400, 500]</li>
+  <li><code>max_depth</code>: ağaç derinliği [3-7]</li>
+  <li><code>learning_rate</code>: her ağacın katkısı [0.01-0.2]</li>
+  <li><code>subsample</code>: her ağacın gördüğü satır oranı [0.6-1.0]</li>
+  <li><code>colsample_bytree</code>: her ağacın gördüğü feature oranı [0.6-1.0]</li>
+  <li><code>min_child_weight</code>: yaprak için min örnek [1, 3, 5, 7]</li>
+  <li><code>gamma</code>: split için min kazanç [0-0.3]</li>
+</ul>
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q37</span><span class="qt">GridSearchCV ile RandomizedSearchCV arasındaki fark ne? Neden random tercih ettik?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="cmp">
+  <div class="cmp-col"><strong>GridSearchCV</strong>Tüm kombinasyonları dener. 7 parametre × 4-5 değer = 40.000+ kombinasyon. cv=3 ile 120.000 model. Saatler sürer.</div>
+  <div class="cmp-col"><strong>RandomizedSearchCV</strong>Rastgele 30 kombinasyon seçer. cv=3 ile 90 model. Dakikalar sürer. Araştırmalar random'un grid'e yakın kalite verdiğini gösteriyor.</div>
+</div>
+<code>scoring="f1"</code>: her kombinasyon F1 skoruyla değerlendirildi. Accuracy değil — sınıf dengesizliğinde doğru metrik bu.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q38</span><span class="qt">Threshold optimizasyonu nedir? Neden 0.5 kullanmadın?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Model 0-1 arası olasılık üretir. "0.5 üstü hit" keyfi bir kuralı — modelin iç kalibrasyonu bunu garanti etmiyor.<br><br>
+<strong>Yaptığımız:</strong> 0.10'dan 0.90'a 0.01 adımlarla 80 farklı eşik denedik. Her birinde val seti üzerinde F1 hesaplandık. En yüksek F1'i veren eşiği seçtik.
+<div class="hl">for t in np.arange(0.10, 0.91, 0.01):<br>    y_pred = (probs >= t).astype(int)<br>    f1 = f1_score(y_val, y_pred)<br>    if f1 > best_f1: best_t = t</div>
+Test setine yalnızca bu eşik uygulandı — test verisi hiçbir kararda kullanılmadı.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q39</span><span class="qt">Precision, Recall ve F1 Score nedir? Matematiksel ifadeleri?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="hl">Precision = TP / (TP + FP)<br>  → "Hit dediğimizin kaçı gerçekten hit?"<br><br>Recall    = TP / (TP + FN)<br>  → "Gerçek hitlerden kaçını yakaladık?"<br><br>F1 Score  = 2 × (Precision × Recall) / (Precision + Recall)<br>  → Harmonik ortalama: ikisini birlikte dengeler</div>
+Bizde: Precision %56.9, Recall %58.4, F1 %57.6. Harmonik ortalama aritmetik ortalamadan (<strong>%57.65</strong>) farklı değil çünkü ikisi birbirine çok yakın. Eğer Precision %90, Recall %10 olsaydı F1 = %18 olurdu — biri feda ederek diğerini şişirme cezalandırılır.
+</div></div>
+</div>
+
+<div class="card" data-level="medium">
+<div class="ch"><span class="qn">Q40</span><span class="qt">AUC-ROC nedir? Threshold ile ilişkisi ne?</span><span class="dot dm"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>ROC (Receiver Operating Characteristic) eğrisi</strong>: farklı threshold değerlerinde TPR (Recall) ve FPR (False Positive Rate = FP/(FP+TN)) çiftlerini çizer.<br><br>
+<strong>AUC (Area Under Curve)</strong>: bu eğrinin altındaki alan. 1.0 = mükemmel, 0.5 = rastgele tahmin, 0.0 = tamamen ters.<br><br>
+<strong>Neden önemli?</strong> Threshold'dan bağımsız — modelin genel sıralama kabiliyetini ölçer. "Rastgele bir hit ve flop seçsem, modelin hit'e daha yüksek olasılık verme şansı nedir?" Bizde <strong>%89.21</strong> → 100 çiftten 89'unda doğru sıralama.
+</div></div>
+</div>
+
+<!-- ══════════════════ ZOR ══════════════════ -->
+<div class="sec sh"><span class="si">05</span>ZOR — Derinlemesine Anlayış &amp; Eleştirel Sorular</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q41</span><span class="qt">Data Leakage (veri sızıntısı) nedir? Bu projede hangi noktalarda risk var?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Test/validation verisinin bilgisinin eğitime sızması → gerçek dünyada hiç o kadar iyi çalışmayacak model.<br><br>
+<strong>Bu projede 3 noktada risk:</strong>
+<ul>
+  <li><strong>StandardScaler</strong>: val/test'e de fit edilseydi risk vardı → sadece train'e fit ettik ✓</li>
+  <li><strong>SMOTE</strong>: val/test'e de uygulanıp sonra bölünseydi risk vardı → sadece train'e uyguladık ✓</li>
+  <li><strong>Target Encoding</strong>: tüm veri üzerinde hesaplandı → val/test satırlarının Hit bilgisi kodlamaya girdi ⚠️ Bu kısmen leakage. Tam doğrusu: sadece train setinde hesaplanmalı, val/test'e map ile uygulanmalıydı.</li>
+</ul>
+<div class="tip"><strong>Sınavda bunu kendin söylersen büyük artı değer kazanırsın.</strong></div>
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q42</span><span class="qt">Global_Sales neden kesinlikle feature olarak kullanılamaz?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Target (Hit) = Global_Sales > 1M koşulundan türetildi. Global_Sales'i feature olarak vermek, modele "bu oyun 2.3M satmış, hit mi?" sorusunu sormak gibidir — cevap trivial ve tamamen işe yaramaz.
+<div class="hl">Model şunu öğrenir: "Global_Sales > 1 → Hit=1" (tek kural, %100 doğru)<br>Ama gerçek dünyada yayın öncesi satış verisi yoktur!</div>
+Bu en ağır data leakage türüdür: <strong>target'ı hesaplamak için kullandığın değişkeni feature olarak vermek</strong>. Bunu yapmak ML'in tüm anlamını yok eder.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q43</span><span class="qt">%89 Accuracy'ye rağmen F1 neden %58? Bu "bozuk" bir model mi?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Hayır, bozuk değil — <strong>veri setinin bilgi tavanını yansıtıyor</strong>.<br><br>
+Test setinde 2.468 örnek var, yalnızca ~305'i hit (%12.4). "Hep 0 de" diyen naive baseline: Accuracy=%87.6, F1=%0. Bizim modelimiz gerçekten öğreniyor: Recall %58 → 305 hitten ~178'ini yakaladı.<br><br>
+F1'in bu düzeyde kalmasının sebebi: <strong>veri setindeki eksik bilgi</strong>. Pazarlama bütçesi, çıkış tarihi, influencer etkisi, fiyatlandırma → bunların hiçbiri veri setinde yok. En iyi model bile bu tavanı aşamaz.
+<div class="tip"><strong>Sunum cümlesi:</strong> "Modelimiz mevcut verinin sınırlarını aşamıyor — ama bu sınırı görünür kıldı."</div>
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q44</span><span class="qt">Gradient clipping (clipnorm=1.0) neden gerekti?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>Exploding gradient problemi:</strong> backpropagation sırasında bazı katmanlarda gradient değerleri anormal büyüyebilir. Bu büyük gradientler ağırlıkları aşırı günceller → loss NaN olur → eğitim çöker.<br><br>
+SMOTE eğitim setini ~20.000 örneğe büyüttü ve sınıf dağılımını değiştirdi — bu durum gradient patlamalarına zemin hazırlar.<br>
+<div class="hl">clipnorm=1.0: gradient vektörünün L2 normu<br>if ||g|| > 1.0: g = g / ||g||  (orantılı küçült)</div>
+Ağırlıkların güncelleme yönü korunur, sadece büyüklüğü sınırlanır. Eğitim kararlı kalır.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q45</span><span class="qt">SMOTE'un k_neighbors=5 parametresi ne anlama geliyor? 1 veya 10 olsaydı ne olurdu?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Her sentetik örnek, gerçek bir azınlık örneğinin <strong>5 en yakın komşusu</strong> arasından biri ile interpolasyon yapılarak üretilir.<br><br>
+<div class="cmp">
+  <div class="cmp-col"><strong>k=1 (çok küçük)</strong>Çok dar interpolasyon — gerçek örneklere çok yakın sentetikler. Çeşitlilik az, neredeyse kopyalama.</div>
+  <div class="cmp-col"><strong>k=10 (büyük)</strong>Geniş interpolasyon — farklı bölgelerden komşular karışabilir. Gürültülü ve gerçekçi olmayan sentetikler.</div>
+</div>
+k=5: standart ve pratikte iyi sonuç veren değer. Yeterli çeşitlilik sağlar, gürültü introduksiyon riskini dengeler.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q46</span><span class="qt">DataLoader pipeline sırası neden tam bu şekilde tasarlandı?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><code>_read_csv → _clean → _create_target → _engineer_features → _encode</code>
+<ul>
+  <li><strong>Neden clean önce?</strong> Temizlemede satır silinebilir; index tutarlılığı için target oluşturmadan önce yapılmalı.</li>
+  <li><strong>Neden target, feature engineering'den önce?</strong> Target encoding'de <code>df.groupby("Publisher")["Hit"].mean()</code> hesaplanıyor — Hit sütunu olmadan yapılamaz.</li>
+  <li><strong>Neden encode en sonda?</strong> <code>df_clean</code> encoding öncesinde saklanıyor. Visualizer ve Analyzer orijinal metin etiketlere ihtiyaç duyuyor (grafiklerde "Nintendo", "E10+" görmek istiyoruz).</li>
+</ul>
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q47</span><span class="qt">XGBoost'un scale_pos_weight parametresi ne işe yarıyor? Biz neden 1 kullandık?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><code>scale_pos_weight = neg_count / pos_count</code>: XGBoost'a azınlık sınıfına bu kat daha fazla ağırlık ver denir.<br><br>
+SMOTE olmadan: neg=~10.100, pos=~1.414 → scale_pos_weight ≈ 7.14 (hit örneklerine 7x ağırlık)<br><br>
+SMOTE uyguladıktan sonra: neg≈10.100, pos≈10.100 → scale_pos_weight = 1.0 (dengeli). SMOTE zaten dengeledi, ek ağırlık gereksiz.<br><br>
+Kodu genel tutmak için hesaplayıp verdik — SMOTE'suz bir senaryo için de çalışır.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q48</span><span class="qt">Stratified split neden kritik? Olmadan ne olurdu?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">2.468 örneklik test setinde beklenen hit sayısı: ~305 (%12.4). Stratify olmadan rassal split şans eseri 50 hit verebilir → Recall hesabı 50 üzerinden yapılır → anlamsız, kararsız metrikler.<br><br>
+<code>stratify=y</code> ile her set:
+<div class="hl">Train : ~1.424 hit / 11.514 örnek (%12.4)<br>Val   : ~305 hit / 2.468 örnek (%12.4)<br>Test  : ~305 hit / 2.468 örnek (%12.4)</div>
+Metriklerin tekrar edilebilirliği ve istatistiksel güvenilirliği garanti altına alındı.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q49</span><span class="qt">Vanishing gradient problemi nedir? Bu projede nasıl önlendi?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Derin ağlarda backpropagation sırasında gradient'ler ilk katmanlara ulaşana kadar sıfıra yaklaşır — ilk katmanlar neredeyse hiç öğrenemez.
+<div class="cmp">
+  <div class="cmp-col"><strong>Sorunun kaynağı</strong>Sigmoid'in türevi maksimum 0.25 — her katmanda 4'te birine düşer. 10 katman → 0.25^10 ≈ 0</div>
+  <div class="cmp-col"><strong>Çözümlerimiz</strong>ReLU: türevi 1 (pozitif bölgede). BatchNorm: her katmandan sonra aktivasyonları normalize eder.</div>
+</div>
+Bu yüzden gizli katmanlarda ReLU + BatchNormalization kombinasyonu kullandık. Sadece çıkış katmanında sigmoid (olasılık gereksinimi için) kullandık.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q50</span><span class="qt">Confusion matrix'i sayısal olarak yorumla. Hangi hatalar daha kritik?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Test setinde ~2.468 örnek, ~305 hit (~2.163 flop):
+<div class="hl">              Tahmin: 0    Tahmin: 1<br>Gerçek: 0  [TN≈1963]   [FP≈200]   ← yanlış alarm<br>Gerçek: 1  [FN≈127]    [TP≈178]   ← yakalandı</div>
+<strong>FP (yanlış alarm):</strong> "Hit" dedi ama flop. Yatırımcıyı yönlendirirse para kaybı.<br>
+<strong>FN (kaçırılan hit):</strong> "Flop" dedi ama hit. Kazançlı oyunun fırsatı kaçırıldı.<br><br>
+İş senaryosuna göre hangisinin maliyeti daha yüksekse, threshold o yönde kaydırılır. FN azaltmak istiyorsan threshold'u düşür → Recall artar, Precision düşer.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q51</span><span class="qt">Neden max_depth ve subsample XGBoost için kritik parametreler?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>max_depth:</strong> her ağacın kaç seviye derine inebileceği. Yüksek (7+) → karmaşık kurallar → overfitting. Düşük (2-3) → çok basit → underfitting. Genellikle 3-6 optimal.
+<div class="hl">max_depth=3 → "Critic_Score > 75 AND Publisher_hit_rate > 0.3 AND Platform_target_enc > 0.2"<br>max_depth=10 → çok spesifik ezberleme</div>
+<strong>subsample:</strong> her ağacın göreceği satırların oranı. 0.8 → %80 rastgele örneklem. Her ağaç farklı veriyle eğitilir → çeşitlilik → overfitting azalır. Random Forest'ın bagging mantığına benzer.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q52</span><span class="qt">Bu model production'a alınsa nasıl işlemeli? Hangi ek adımlar gerekir?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<ol>
+  <li><strong>Model kaydetme:</strong> <code>model.save("dnn.keras")</code>, <code>joblib.dump(xgb_model, "xgb.pkl")</code></li>
+  <li><strong>Pipeline artefaktları:</strong> Scaler, target encoding map'leri (publisher→0.41 vb.), optimal threshold pickle ile kaydet</li>
+  <li><strong>API endpoint:</strong> FastAPI/Flask — yeni oyun verisi alır, aynı pipeline'dan geçirir</li>
+  <li><strong>Preprocessing:</strong> Has_Critic_Score flag'i → -1 doldurma → target enc map uygulaması → scaler.transform → ensemble predict → threshold → 0/1 karar</li>
+  <li><strong>Drift monitoring:</strong> Zaman içinde yeni oyunlar çıktıkça target encoding map'leri güncellenmeli</li>
+  <li><strong>A/B test:</strong> Gerçek karar süreçlerinde modelin önerisini insan kararıyla karşılaştır</li>
+</ol>
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q53</span><span class="qt">User_Score'daki 'tbd' değerleri neden sorun oluşturdu? Nasıl çözüldü?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Kaggle veri setinde kullanıcı oylaması henüz gerçekleşmemiş oyunların User_Score sütununda <code>'tbd'</code> (to be determined) stringi yazıyor. Pandas bu sütunu object (string) dtype olarak okuduğu için <code>float('tbd')</code> çağrısı hata verir.
+<div class="hl">df["User_Score"] = pd.to_numeric(df["User_Score"], errors="coerce")<br># 'tbd' → NaN ✓<br># '7.5' → 7.5  ✓<br># '9'   → 9.0  ✓</div>
+Ardından Has_User_Score flag'i oluşturuldu, NaN'lar -1 ile dolduruldu. Bu adım atlanırsa tüm dizinin float'a çevrilmesi başarısız olur, model NaN hatası verir.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q54</span><span class="qt">Veri setinin bilgi tavanı neden ~%70-75 F1 olarak tahmin edildi?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">En güçlü feature olan Publisher_target_enc dahi Hit ile yalnızca ~0.30 korelasyon gösteriyor. Random Forest, XGBoost ve DNN ile yapılan benchmark'larda F1 %55-60 bandında sabitlendi.<br><br>
+<strong>Eksik kritik bilgiler:</strong> Pazarlama bütçesi, çıkış tarihi ve rekabet, franchise etkisi (sequel mi?), influencer/streamer etkisi, fiyatlandırma, multiplayer/online modu, güncelleme ve DLC planları.<br><br>
+Daha iyi algoritmalar değil — <strong>daha zengin veri</strong> bu tavanı kırabilir.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q55</span><span class="qt">Softmax ve Sigmoid farkı nedir? Neden bu problem için sigmoid?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="cmp">
+  <div class="cmp-col"><strong>Sigmoid</strong>Tek nöron çıkışı. P(hit). P(flop) = 1 - P(hit). İkili sınıflandırma için.</div>
+  <div class="cmp-col"><strong>Softmax</strong>Çok nöronlu çıkış, toplamları 1. "Action, RPG, FPS" gibi çok sınıf için.</div>
+</div>
+<div class="hl">Softmax: P(A) + P(B) + P(C) = 1.0<br>Sigmoid: P(hit) ∈ (0,1), P(flop) = 1-P(hit)</div>
+Hit/flop sadece 2 sınıf → tek nöron + sigmoid yeterli. Binary cross-entropy ile matematiksel uyum sağlar. Softmax ile 2 sınıf kullanmak aynı sonucu verir ama gereksiz karmaşıklık katar.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q56</span><span class="qt">Neden bu projede CNN, LSTM gibi diğer ağ tipleri kullanılmadı?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<ul>
+  <li><strong>CNN (Convolutional Neural Network)</strong>: görsel örüntüler için tasarlandı. Feature'lar arasında mekansal/yerel ilişki varsayar (piksel komşuluğu gibi). Tablo verisinde anlamsız — Publisher ve Year arasında "komşuluk" yok.</li>
+  <li><strong>LSTM (Long Short-Term Memory)</strong>: zaman serisi ve dizi verisi için. Her oyun bağımsız örnek — önceki oyunun başarısı sonrakinin feature'ı değil (sequential ilişki yok).</li>
+  <li><strong>Dense NN (bizim seçimimiz)</strong>: her feature bağımsız sayısal değer olarak işlenir → tabular veri için ideal. Proje yönergesi de bunu şart koşuyor.</li>
+</ul>
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q57</span><span class="qt">Modeli daha da iyileştirmek için ne yapardın? Somut 5 adım.</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<ol>
+  <li><strong>Target encoding leakage'ı kapat:</strong> Encoding sadece train setinde hesaplansın, val/test'e map ile uygulansin.</li>
+  <li><strong>5-Fold Stratified CV:</strong> Tek val seti yerine 5 farklı fold'da threshold seçimi → daha güvenilir ve kararlı karar sınırı.</li>
+  <li><strong>Focal Loss:</strong> Binary cross-entropy yerine. Kolay örnekleri (çok sayıdaki flop) downweight eder, modeli zor "hit" örneklerine odaklar → Recall artışı.</li>
+  <li><strong>Keras Tuner / Optuna ile DNN hiperparametre arama:</strong> Katman sayısı, genişlik, dropout oranları için sistematik arama.</li>
+  <li><strong>Stacking ensemble:</strong> DNN + XGBoost olasılıklarını meta-model'e (lojistik regresyon) girdi olarak ver — basit ortalamadan daha akıllı birleştirme.</li>
+</ol>
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q58</span><span class="qt">Random Forest ile XGBoost arasındaki temel fark nedir?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="cmp">
+  <div class="cmp-col"><strong>Random Forest (Bagging)</strong>Ağaçlar paralel, bağımsız eğitilir. Her ağaç rastgele veri alt kümesi görür. Oylamada/ortalamada birleştirilir. Overfitting'e karşı dayanıklı.</div>
+  <div class="cmp-col"><strong>XGBoost (Boosting)</strong>Ağaçlar sıralı, her biri öncekinin hatasını düzeltir. Gradient descent ile optimize edilir. Daha yüksek performans ama overfitting riski daha fazla → regularizasyon önemli.</div>
+</div>
+Bu projede XGBoost seçildi çünkü RandomizedSearchCV ile sıkı regularizasyon (max_depth, gamma, subsample) uygulandı.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q59</span><span class="qt">Neden batch_size=64 seçildi? 32 veya 256 fark yaratır mıydı?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="cmp">
+  <div class="cmp-col"><strong>Küçük batch (8-32)</strong>Gürültülü gradient → zigzag güncelleme. Yavaş ama bazı regularizasyon etkisi. Düz minimumlara yakınsayabilir.</div>
+  <div class="cmp-col"><strong>Büyük batch (256+)</strong>Düzgün gradient → hızlı. Ama "sharp" minimumlara takılır → genelleme zayıflar. GPU belleği sorun olabilir.</div>
+</div>
+SMOTE sonrası ~20.000 eğitim örneği ile batch=64: her epoch ~312 güncelleme adımı. Hem yeterince sık güncelleme hem yönetilebilir gürültü. Pratikte 32-128 arası fark minimaldir.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q60</span><span class="qt">L2 regularizasyon vs Dropout: hangisini ne zaman tercih edersin?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="cmp">
+  <div class="cmp-col"><strong>L2 regularizasyon</strong>Her adımda aktif. Büyük ağırlıkları sınırlar. "Tüm feature'ları küçük ölçekte kullan" etkisi. Küçük veri setlerinde güçlü.</div>
+  <div class="cmp-col"><strong>Dropout</strong>Rastgele nöron kapatma. Ensemble etkisi yaratır. Büyük veri setlerinde daha etkili. Eğitim süresi uzayabilir.</div>
+</div>
+İkisi birbirini tamamlar — bu projede <strong>ikisi birlikte</strong> kullanıldı. L2 ağırlıkları küçük tutar, Dropout nöronların bağımlılığını kırar. Genellikle ikisini birlikte kullanmak tek birini kullanmaktan iyidir.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q61</span><span class="qt">Platform_avg_score hesaplanırken neden Has_Critic_Score==1 filtresi kullanıldı?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Critic_Score eksik olan oyunlar -1 ile dolduruldu. Bu -1'leri dahil ederek ortalama hesaplamak platformun gerçek kalite düzeyini bozar.
+<div class="hl">PS4 oyunları: 60 puanlı + 80 puanlı + -1 (veri yok)<br>Yanlış: ortalama = (60+80+(-1))/3 = 46.3  ← anlamsız<br>Doğru : ortalama = (60+80)/2 = 70.0  ← gerçek kalite</div>
+Çözüm: önce <code>df[df["Has_Critic_Score"]==1]</code> ile filtrele, sonra platform ortalaması hesapla.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q62</span><span class="qt">Bu problemde precision mi recall mi daha önemli? Neden?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Kullanım senaryosuna göre değişir:
+<div class="cmp">
+  <div class="cmp-col"><strong>Recall daha önemli ise</strong>"Hiçbir hit'i kaçırmak istemiyorum." Hatalı alarm kabul edilebilir. Örn: küçük bir yayıncı her potansiyel hit oyunu değerlendirmek istiyor. Threshold düşürülür.</div>
+  <div class="cmp-col"><strong>Precision daha önemli ise</strong>"Yanlış alarm istemiyorum, kaynak israfı oluyor." Örn: büyük bir yatırım fonu, çok sınırlı sayıda oyunu finanse edecek. Threshold yükseltilir.</div>
+</div>
+Bu projede F1 optimize edildi — her iki tarafın dengesi sağlandı. Bu denge değiştirilebilir threshold parametresiyle kolayca ayarlanabilir.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q63</span><span class="qt">cv=3 ne anlama geliyor? Neden 5 veya 10 değil?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">3-fold cross-validation: eğitim seti 3 eşit parçaya bölünür. Her iterasyonda 2 parça train, 1 parça validation olur. 3 model eğitilir, F1'lerin ortalaması alınır.
+<div class="hl">cv=3  → 3 model × 30 kombinasyon = 90 model<br>cv=5  → 5 model × 30 kombinasyon = 150 model<br>cv=10 → 10 model × 30 kombinasyon = 300 model</div>
+RandomizedSearchCV için cv=3 seçildi: <strong>hesaplama maliyeti</strong> ile <strong>tahmin güvenilirliği</strong> dengesi. XGBoost kendisi zaten yavaş bir algoritma. cv=5 veya 10 çok daha uzun sürer. Büyük veri setinde (16K satır) cv=3 yeterince güvenilir.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q64</span><span class="qt">Neden main.py'da print_banner() fonksiyonu kullanıldı?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Küçük bir yardımcı (helper) fonksiyonu — kod tekrarını önlemek için (DRY prensibi: Don't Repeat Yourself). Her pipeline adımını konsola belirgin biçimde göstermek için kullanıldı.
+<div class="hl">def print_banner(text: str):<br>    line = "─" * 60<br>    print(f"\n{line}\n  {text}\n{line}")</div>
+Yönerge 4 sınıf şart koşuyor ama bu tür küçük yardımcı fonksiyonlar kabul edilebilir — OOP prensiplerini ihlal etmiyor, bağımsız çalışıyor, import gerektirmiyor.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q65</span><span class="qt">ModelTrainer'da _ensemble_predict() neden ayrı bir metod olarak yazıldı?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Ensemble tahmini 3 farklı yerde kullanılıyor: threshold optimizasyonu (_find_best_threshold), final değerlendirme (_evaluate) ve confusion matrix (get_confusion_matrix).<br><br>
+Metod olmadan bu 6 satır kodu 3 farklı yere kopyalaması gerekirdi. Ayrı metod ile:
+<ul>
+  <li><strong>DRY prensibi:</strong> kod tekrarı yok</li>
+  <li><strong>Bakım kolaylığı:</strong> ağırlık değiştirmek (50-50 → 60-40) sadece bir yerde</li>
+  <li><strong>Okunabilirlik:</strong> <code>self._ensemble_predict(X)</code> ifadesi ne yaptığını açıklıyor</li>
+</ul>
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q66</span><span class="qt">SMOTE'dan önce mi yoksa sonra mı StandardScaler uygulanmalı? Neden?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans"><strong>Önce scale, sonra SMOTE</strong> — tam bu sırayla yapıldı.
+<div class="hl">X_train = scaler.fit_transform(X_train)  # 1. Scale<br>X_train, y_train = smote.fit_resample(...)  # 2. SMOTE</div>
+<strong>Neden bu sıra?</strong> SMOTE, yeni örnek üretmek için k-NN (k en yakın komşu) mesafesi hesaplar. Feature'lar farklı ölçeklerdeyse (Year: 1980-2016 vs Publisher_hit_rate: 0-1) mesafe hesabı bozulur — büyük sayılar domine eder. Önce ölçeklendirme yapılınca her feature mesafeye eşit katkı yapar → daha kaliteli sentetik örnekler.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q67</span><span class="qt">Bu projenin OOP tasarımında Single Responsibility Principle nasıl uygulandı?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Her sınıfın tek ve net bir sorumluluğu var:
+<ul>
+  <li><strong>DataLoader:</strong> sadece veri hazırlama. Model eğitmez, grafik çizmez.</li>
+  <li><strong>DataAnalyzer:</strong> sadece istatistik hesaplama ve metin raporu. Görselleştirme yok.</li>
+  <li><strong>Visualizer:</strong> sadece Matplotlib grafikleri. Veri temizlemez, model eğitmez.</li>
+  <li><strong>ModelTrainer:</strong> sadece model eğitimi ve değerlendirme. Veri yüklemez.</li>
+</ul>
+Bu tasarım: her sınıf bağımsız test edilebilir, değişiklikler diğer sınıfları etkilemez. Örn. görselleştirme tipini değiştirmek sadece Visualizer'ı güncellemeyi gerektirir.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q68</span><span class="qt">Validation loss izleniyor ama train accuracy raporlanıyor. Bu tutarsızlık sorun mu?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">Hayır, bu bilinçli bir seçim. EarlyStopping için <code>monitor="val_loss"</code> kullandık çünkü:<br><br>
+• Train loss overfit olmuş modelde düşük görünür ama bu yanıltıcı<br>
+• Val loss gerçek genelleme kabiliyetini temsil eder<br>
+• Loss sürekli değer (optimizasyon için ideal), accuracy kesikli (threshold bağımlı)<br><br>
+Final raporlama için ise test setindeki Accuracy, Precision, Recall, F1, AUC kullanıldı — bunlar iş karar vericilere anlaşılır metrikler. Monitoring için loss, reporting için accuracy kullanmak standart ML pratiğidir.
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q69</span><span class="qt">Bu projeyi baştan yazsan ne farklı yapardın?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<ol>
+  <li><strong>Target encoding pipeline'ı sızdırmaz yap:</strong> Encoding sadece train verisi üzerinde hesaplanır, val/test'e transform olarak uygulanır</li>
+  <li><strong>K-Fold CV baştan kurgula:</strong> Tek val seti yerine 5-fold ile hem threshold hem hiperparametre seçimi — sonuçlar daha güvenilir ve tekrar edilebilir olur</li>
+  <li><strong>Focal Loss'u DNN'e ekle:</strong> Sınıf dengesizliği için SMOTE yerine/yanında loss düzeyinde çözüm</li>
+  <li><strong>Feature importance analizi ekle:</strong> XGBoost'un feature importance çıktısını rapor ve grafik olarak sun — hangi feature'ların ne kadar katkı yaptığı görünür olsun</li>
+  <li><strong>Model serialization ekle:</strong> Eğitilen modeli kaydet, yeni tahmin için yeniden eğitme gerektirmeyen bir prediction script yaz</li>
+</ol>
+<div class="tip"><strong>Sınavda bu soruyu kendin sorarsan:</strong> "Daha da geliştirmek istediğim 5 nokta var..." demek projeye gerçekten hakim olduğunu gösterir.</div>
+</div></div>
+</div>
+
+<div class="card" data-level="hard">
+<div class="ch"><span class="qn">Q70</span><span class="qt">Sunum hikayeni oluştur. Baştan sona nasıl anlatırsın?</span><span class="dot dh"></span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="cb"><div class="ans">
+<div class="box">
+"<em>Bu proje, bir video oyununun yayınlanmadan önce ticari başarı şansını tahmin eden bir makine öğrenmesi sistemi.</em><br><br>
+
+<em>İlk modelimi kurduğumda %88 Accuracy gördüm ve iyimser hissettim — ta ki sınıf dağılımına bakana kadar. Veri setinin %87.6'sı zaten 'hit değil'. 'Her şey flop' diyen bir model de %88 alırdı. Asıl metrikler olan Recall %45, F1 %49 idi.</em><br><br>
+
+<em>Üç aşamada geliştirdim: Birincisi, %51 eksik olan Critic_Score'ları silmek veya medyanla doldurmak yerine 'puan yok' bilgisini bir feature olarak modele verdim. İkincisi, Publisher gibi kategorileri rastgele sayılar olarak değil, 'bu yayıncının tarihsel hit oranı' olarak kodladım — korelasyon 15 katına çıktı. Üçüncüsü, DNN'e XGBoost'u ensemble ettim ve 30 iterasyonlu hiperparametre araması yaptım.</em><br><br>
+
+<em>Sonuç: Recall %45'ten %58'e, F1 %49'dan %58'e, AUC %89'a çıktı. Bu iyileşmeyi 9. grafikte görsel olarak da karşılaştırmalı şekilde sundum. Ama en önemli bulgu şu: bu veri setinin bilgi tavanı var. Pazarlama bütçesi, çıkış zamanlaması gibi asıl belirleyici faktörler eksik — ve bu, mevcut modelin sınırını belirliyor."</em>
+</div>
+</div></div>
+</div>
+
+</main>
+
+<script>
+const cards = document.querySelectorAll('.card');
+const TOTAL = cards.length;
+const pfill = document.getElementById('pfill');
+const plabel = document.getElementById('plabel');
+
+function updateProgress() {
+  const opened = document.querySelectorAll('.card.open').length;
+  pfill.style.width = (opened / TOTAL * 100) + '%';
+  plabel.textContent = opened + ' / ' + TOTAL + ' açıldı';
+}
+
+cards.forEach(c => {
+  c.querySelector('.ch').addEventListener('click', () => {
+    c.classList.toggle('open');
+    updateProgress();
+  });
+});
+
+let allOpen = false;
+document.getElementById('ea').addEventListener('click', function() {
+  allOpen = !allOpen;
+  document.querySelectorAll('.card:not(.hidden)').forEach(c => c.classList.toggle('open', allOpen));
+  this.textContent = allOpen ? 'Tümünü Kapat' : 'Tümünü Aç';
+  updateProgress();
+});
+
+document.querySelectorAll('[data-f]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('[data-f]').forEach(b => {
+      b.className = 'fb';
+    });
+    const f = this.dataset.f;
+    const cls = f === 'all' ? 'aa' : f === 'easy' ? 'ae' : f === 'medium' ? 'am' : 'ah';
+    this.classList.add(cls);
+    cards.forEach(c => {
+      c.classList.toggle('hidden', f !== 'all' && c.dataset.level !== f);
+    });
+    applySearch();
+    updateSections();
+    updateProgress();
+  });
+});
+
+function applySearch() {
+  const q = document.getElementById('si').value.toLowerCase().trim();
+  const activeBtn = document.querySelector('[data-f].aa, [data-f].ae, [data-f].am, [data-f].ah');
+  const f = activeBtn ? activeBtn.dataset.f : 'all';
+  let vis = 0;
+  cards.forEach(c => {
+    const matchF = f === 'all' || c.dataset.level === f;
+    const matchQ = !q || c.textContent.toLowerCase().includes(q);
+    c.classList.toggle('hidden', !(matchF && matchQ));
+    if (matchF && matchQ) vis++;
+  });
+  document.getElementById('nr').style.display = vis === 0 ? 'block' : 'none';
+  updateProgress();
+}
+document.getElementById('si').addEventListener('input', () => { applySearch(); updateSections(); });
+
+function updateSections() {
+  document.querySelectorAll('.sec').forEach(sec => {
+    let next = sec.nextElementSibling;
+    let any = false;
+    while (next && !next.classList.contains('sec')) {
+      if (next.classList.contains('card') && !next.classList.contains('hidden')) { any = true; break; }
+      next = next.nextElementSibling;
+    }
+    sec.style.display = any ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+============================================================
+  VIDEO GAME SALES – ANALYSIS REPORT
+============================================================
+
+--- NumPy Descriptive Statistics ---
+
+Critic_Score:
+  mean    : 32.9675
+  std     : 36.3010
+  min     : -1.0000
+  max     : 98.0000
+  sum     : 542315.0000
+  median  : -1.0000
+
+User_Score:
+  mean    : 2.6867
+  std     : 4.1698
+  min     : -1.0000
+  max     : 9.7000
+  sum     : 44196.8000
+  median  : -1.0000
+
+Global_Sales:
+  mean    : 0.5363
+  std     : 1.5584
+  min     : 0.0100
+  max     : 82.5300
+  sum     : 8821.3400
+  median  : 0.1700
+
+--- Pearson Correlation Matrix ---
+              Critic_Score  User_Score  Global_Sales
+Critic_Score      1.000000    0.819410      0.148033
+User_Score        0.819410    1.000000      0.134882
+Global_Sales      0.148033    0.134882      1.000000
+
+--- Genre Avg Global Sales (M copies) ---
+              avg_sales  total_sales  num_games
+Genre                                          
+Platform       0.940615       825.86        878
+Shooter        0.803881      1041.83       1296
+Role-Playing   0.627714       930.90       1483
+Racing         0.590294       723.70       1226
+Sports         0.568252      1310.39       2306
+Fighting       0.528829       442.63        837
+Action         0.519653      1720.05       3310
+Misc           0.459582       790.94       1721
+Simulation     0.452681       388.40        858
+Puzzle         0.422373       240.33        569
+Strategy       0.256835       172.85        673
+Adventure      0.180557       233.46       1293
+
+--- Platform Total Global Sales (M copies, top 15) ---
+          avg_sales  total_sales  num_games
+Platform                                   
+PS2        0.579906      1233.46       2127
+X360       0.780349       961.39       1232
+PS3        0.712979       931.15       1306
+Wii        0.693421       891.74       1286
+DS         0.378761       803.73       2122
+PS         0.611269       727.41       1190
+PS4        0.799567       314.23        393
+GBA        0.386634       313.56        811
+PSP        0.242909       289.79       1193
+3DS        0.503750       257.92        512
+PC         0.268088       256.56        957
+GB         2.622887       254.42         97
+XB         0.313935       252.09        803
+NES        2.561939       251.07         98
+N64        0.690538       218.21        316
