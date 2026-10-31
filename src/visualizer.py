@@ -259,115 +259,39 @@ class Visualizer:
     # Chart 9 – Model comparison: before vs after (grouped bar chart)
     # ------------------------------------------------------------------
 
-    def plot_model_comparison(self, new_results: dict):
+    def plot_model_comparison(self, new_results: dict, baseline_results=None):
+        """Plot measured metrics; compare only when a baseline is supplied.
+
+        Both dictionaries use accuracy, precision, recall, f1, and auc in [0, 1].
+        The caller is responsible for comparable datasets and evaluation splits.
         """
-        Side-by-side grouped bar chart comparing the baseline model
-        (label encoding, no SMOTE, no ensemble) with the improved model
-        (target encoding, SMOTE, DNN + XGBoost ensemble).
-
-        This chart visually tells the improvement story:
-          - Blue bars  = baseline model (v1)
-          - Green bars = improved model (v3)
-
-        new_results: dict with keys accuracy, precision, recall, f1, auc
-                     (values between 0 and 1)
-        """
-
-        # Baseline model metrics (label encoding only, single DNN, threshold=0.5)
-        # These are the real numbers from the first version of the model
-        baseline = {
-            "Accuracy":  0.8845,
-            "Precision": 0.5391,
-            "Recall":    0.4525,
-            "F1 Score":  0.4920,
-            "AUC-ROC":   0.8500,
-        }
-
-        # Improved model metrics passed in from ModelTrainer
-        improved = {
-            "Accuracy":  new_results["accuracy"],
-            "Precision": new_results["precision"],
-            "Recall":    new_results["recall"],
-            "F1 Score":  new_results["f1"],
-            "AUC-ROC":   new_results["auc"],
-        }
-
-        # The metric names on the x-axis
-        metrics = list(baseline.keys())
-
-        # Convert to percentages for the bar heights
-        baseline_vals = [baseline[m] * 100 for m in metrics]
-        improved_vals = [improved[m] * 100 for m in metrics]
-
-        # x positions for the groups
-        x = np.arange(len(metrics))
-
-        # Width of each individual bar (two bars per group, so < 0.5 each)
-        bar_width = 0.35
+        keys = ["accuracy", "precision", "recall", "f1", "auc"]
+        labels = ["Accuracy", "Precision", "Recall", "F1 Score", "AUC-ROC"]
+        measured = np.array([new_results[key] for key in keys], dtype=float)
+        if not np.isfinite(measured).all() or ((measured < 0) | (measured > 1)).any():
+            raise ValueError("Metrics must be finite values between zero and one.")
+        baseline = None
+        if baseline_results is not None:
+            baseline = np.array([baseline_results[key] for key in keys], dtype=float)
+            if not np.isfinite(baseline).all() or ((baseline < 0) | (baseline > 1)).any():
+                raise ValueError("Baseline metrics must be finite values between zero and one.")
 
         fig, ax = plt.subplots(figsize=(11, 6))
-
-        # Draw baseline bars slightly to the left of center
-        bars_base = ax.bar(
-            x - bar_width / 2, baseline_vals,
-            width=bar_width,
-            color="#2196F3",       # blue for baseline
-            label="Baseline Model\n(Label Enc, single DNN)",
-            zorder=3,
-        )
-
-        # Draw improved bars slightly to the right of center
-        bars_impr = ax.bar(
-            x + bar_width / 2, improved_vals,
-            width=bar_width,
-            color="#4CAF50",       # green for improved
-            label="Improved Model\n(Target Enc, DNN + XGBoost)",
-            zorder=3,
-        )
-
-        # Add the percentage value on top of each bar
-        for bar in bars_base:
-            ax.text(
-                bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + 0.5,
-                f"{bar.get_height():.1f}%",
-                ha="center", va="bottom",
-                fontsize=8.5, color="#1565C0", fontweight="bold",
-            )
-
-        for bar in bars_impr:
-            ax.text(
-                bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + 0.5,
-                f"{bar.get_height():.1f}%",
-                ha="center", va="bottom",
-                fontsize=8.5, color="#2E7D32", fontweight="bold",
-            )
-
-        # Axis formatting
-        ax.set_xticks(x)
-        ax.set_xticklabels(metrics, fontsize=11)
-        ax.set_ylabel("Score (%)", fontsize=11)
-        ax.set_ylim(0, 105)
-        ax.set_title(
-            "Model Performance: Baseline vs Improved\n"
-            "Target Encoding + SMOTE + XGBoost Ensemble",
-            fontsize=13, fontweight="bold", pad=14,
-        )
-        ax.legend(fontsize=10, loc="lower right")
-        ax.yaxis.grid(True, linestyle="--", alpha=0.6, zorder=0)
+        positions = np.arange(len(keys))
+        width = 0.35 if baseline is not None else 0.6
+        if baseline is not None:
+            bars = ax.bar(positions - width / 2, baseline * 100, width,
+                          label="Supplied baseline", color="#2196F3")
+            ax.bar_label(bars, fmt="%.1f%%", padding=3)
+        offset = width / 2 if baseline is not None else 0
+        bars = ax.bar(positions + offset, measured * 100, width,
+                      label="Current run", color="#4CAF50")
+        ax.bar_label(bars, fmt="%.1f%%", padding=3)
+        ax.set_xticks(positions, labels)
+        ax.set_ylabel("Score (%)")
+        ax.set_ylim(0, 110)
+        ax.set_title("Measured model performance")
+        ax.legend()
+        ax.yaxis.grid(True, linestyle="--", alpha=0.6)
         ax.set_axisbelow(True)
-
-        # Add a short interpretation note below the chart
-        fig.text(
-            0.5, 0.01,
-            "Key insight: Recall +13 pp and F1 +8 pp show the model now correctly"
-            " identifies hit games instead of defaulting to the majority class.",
-            ha="center", fontsize=9, style="italic", color="#555555",
-        )
-
-        self._save(
-            fig, "09_model_comparison.png",
-            "Grouped bar chart shows improvement across all metrics, "
-            "especially Recall (+13 pp) and F1 (+8 pp).",
-        )
+        self._save(fig, "09_model_comparison.png", "Metrics supplied by the current evaluation.")
