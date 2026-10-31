@@ -1,147 +1,108 @@
 # Video Game Hit Predictor
 
-An end-to-end Machine Learning pipeline that predicts whether a video game will become a "hit" (defined as selling more than 1.0 million copies globally) using historical sales and review data. The pipeline implements feature engineering, target encoding, class imbalance handling (SMOTE), and trains an ensemble of a **Keras Deep Neural Network (DNN)** and an **XGBoost Classifier**.
+Explore historical game sales and train a Keras/XGBoost ensemble to classify games whose global sales exceed one million copies.
 
----
+The project combines data analysis, chart generation, feature engineering, and experimental classification. Review scores and sales-derived features describe historical data; the current pipeline is not a validated pre-release forecasting system.
 
-## 🚀 Key Features
+## Key Features
 
-* **Advanced Feature Engineering**: Builds platform average scores, publisher game counts, target-encoded categories, and missing-value flags to guide the model.
-* **Class Imbalance Handling**: Utilizes **SMOTE** (Synthetic Minority Over-sampling Technique) to address dataset skewness (hits vs. non-hits).
-* **Ensemble Architecture**: Combines a deep learning model (Keras/TensorFlow DNN) with gradient-boosted decision trees (XGBoost) for robust tabular predictions.
-* **Automatic Hyperparameter Tuning**: Leverages `RandomizedSearchCV` for tuning XGBoost parameters.
-* **Decision Threshold Optimization**: Tunes the prediction threshold on a validation set to maximize the F1-Score.
-* **Rich Data Visualization**: Automatically generates 9 analytical charts showing data distributions, correlation metrics, regional comparisons, and model performance.
+- CSV cleaning, score-missingness flags, and categorical feature engineering.
+- Descriptive reports and seven exploratory charts.
+- A 50/50 average of Keras DNN and XGBoost prediction probabilities.
+- Training-set scaling, SMOTE, randomized XGBoost parameter search, and validation-set threshold selection.
+- Test metrics, a confusion matrix, and a chart of metrics supplied by the evaluation.
+- Optional baseline comparison only when the caller supplies baseline measurements.
 
----
+## Tech Stack
 
-## 🛠️ Data Pipeline Architecture
+Python, pandas, NumPy, Matplotlib, Seaborn, scikit-learn, imbalanced-learn, TensorFlow/Keras, and XGBoost. See [requirements.txt](requirements.txt).
 
-The workflow is structured into 6 sequential steps executed via `src/main.py`:
+## Architecture & Project Structure
 
-```
-┌────────────────────────────────────────────────────────┐
-│ 1. DataLoader: Load CSV, clean data & engineer features │
-└───────────────────────────┬────────────────────────────┘
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│ 2. DataAnalyzer: NumPy-based descriptive statistics    │
-└───────────────────────────┬────────────────────────────┘
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│ 3. Visualizer: Plot exploratory data analysis charts    │
-└───────────────────────────┬────────────────────────────┘
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│ 4. ModelTrainer: SMOTE, scale features & train models  │
-└───────────────────────────┬────────────────────────────┘
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│ 5. Evaluation: Calculate metrics & plot Confusion Matrix│
-└───────────────────────────┬────────────────────────────┘
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│ 6. Comparison: Plot baseline vs. ensemble performance  │
-└────────────────────────────────────────────────────────┘
-```
-
----
-
-## 📁 Repository Structure
-
-```
-video_game_hit_predictor/
+```text
+.
 ├── data/
-│   └── Video_Games_Sales_as_at_22_Dec_2016.csv  ← Dataset file
-├── outputs/
-│   ├── graphs/                                  ← Automatically generated charts (1-9)
-│   └── reports/                                 ← Data analysis & model evaluation reports
+│   └── Video_Games_Sales_as_at_22_Dec_2016.csv
 ├── src/
-│   ├── __pycache__/
-│   ├── analyzer.py                              ← Data statistics module
-│   ├── data_loader.py                           ← Data cleaning & feature engineering
-│   ├── main.py                                  ← Pipeline entry point
-│   ├── model_trainer.py                         ← Neural Network & XGBoost training
-│   └── visualizer.py                            ← Matplotlib & Seaborn visualization engine
-├── LICENSE                                      ← MIT License
-├── requirements.txt                             ← Python dependencies
-└── README.md                                    ← Project documentation (This file)
+│   ├── main.py           # Pipeline orchestration and repository-relative paths
+│   ├── data_loader.py    # Cleaning, target creation, feature engineering
+│   ├── analyzer.py       # Descriptive statistics and reports
+│   ├── model_trainer.py  # Splits, scaling, SMOTE, models, threshold, metrics
+│   └── visualizer.py     # Exploratory and evaluation charts
+├── outputs/              # Historical reports/charts; overwritten on reruns
+├── tests/                # Chart provenance regression tests
+├── requirements.txt
+└── LICENSE
 ```
 
----
+`Global_Sales > 1.0` defines `Hit`; sales values are in millions. The model uses 12 numeric/encoded features. Training allocates 70%/15%/15% to training/validation/test with seed 42.
 
-## 📊 Sample Visualizations
+**Evaluation limitations:** category target encodings and aggregate features are calculated on the complete dataset before splitting. That exposes held-out labels/statistics to feature construction. SMOTE is also applied before the inner randomized-search folds, so inner CV can include related synthetic observations. Scores and historical comparison images must not be presented as independent generalization evidence. Repair these boundaries and retrain before making performance claims.
 
-The pipeline automatically outputs statistical graphs to the `outputs/graphs/` directory. Below are some previews of the generated visualizations:
+## Getting Started
 
-### Regional Sales Comparison
-![Regional Comparison](outputs/graphs/05_regional_comparison.png)
+Use Python 3.11 and an isolated environment. TensorFlow/XGBoost support depends on your platform; GPU configuration is separate from these commands.
 
-### Critic Scores vs. Global Sales
-![Critic vs Sales](outputs/graphs/06_critic_vs_sales.png)
+```bash
+git clone https://github.com/MustafArikan/video-game-hit-predictor.git
+cd video-game-hit-predictor
+python -m venv .venv
+```
 
-### Confusion Matrix (Ensemble Model)
-![Confusion Matrix](outputs/graphs/08_confusion_matrix.png)
+Activate with `source .venv/bin/activate` on Linux/macOS or `.venv\Scripts\Activate.ps1` in PowerShell.
 
-### Performance Comparison (Baseline vs. Improved Ensemble)
-![Model Comparison](outputs/graphs/09_model_comparison.png)
+```bash
+python -m pip install -r requirements.txt
+```
 
----
+## Configuration
 
-## 📈 Model Performance Summary
+No credentials or mandatory environment variables are required. Data/report/chart paths are based on the location of `src/main.py`. Training parameters, the sales threshold, and feature names are currently source-code constants.
 
-The final ensemble model (`50% DNN + 50% XGBoost`) yields highly robust evaluation metrics on the test set:
+## Usage
 
-* **Accuracy**: ~84-86%
-* **Precision**: ~80-82%
-* **Recall**: ~85-87%
-* **F1 Score**: ~83-85%
-* **AUC-ROC**: ~90-92%
-
-Detailed classification reports and performance summaries are written directly to `outputs/reports/model_report.txt`.
-
----
-
-## 📦 Requirements & Dependencies
-
-The project requires Python 3.8+ and the following libraries:
-
-* **pandas** >= 1.5.0
-* **numpy** >= 1.23.0
-* **matplotlib** >= 3.6.0
-* **seaborn** >= 0.12.0
-* **scikit-learn** >= 1.2.0
-* **imbalanced-learn** >= 0.10.0
-* **tensorflow** >= 2.12.0
-* **xgboost** >= 1.7.0
-
----
-
-## ⚙️ Quick Start
-
-### Prerequisites
-* Python 3.8 or higher installed.
-
-### Installation
-1. Clone or download this repository to your local directory.
-2. Open a terminal and navigate to the project root:
-   ```bash
-   cd video_game_hit_predictor
-   ```
-3. Install the required Python packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Running the Pipeline
-Run the main script to execute the entire pipeline (data cleaning, analysis, chart generation, training, and evaluation):
 ```bash
 python src/main.py
 ```
-All outputs (reports and charts) will be saved to the `outputs/` folder.
 
----
+This runs cleaning, analysis, chart export, training, hyperparameter search, threshold selection, and evaluation. Training may take substantial time and use all CPU cores. Reports are written under `outputs/reports/`; charts go to `outputs/graphs/`.
 
-## 📄 License
+![Historical regional sales comparison](outputs/graphs/05_regional_comparison.png)
 
-Distributed under the MIT License. See `LICENSE` for more information.
+The performance-chart method retains its existing name for compatibility. `plot_model_comparison(results)` plots only the supplied run. An optional second dictionary adds an explicitly supplied baseline; the code no longer embeds unverified baseline numbers or fixed improvement claims. Existing committed comparison images predate this correction.
+
+## Testing
+
+```bash
+python -m unittest discover -s tests
+```
+
+Tests verify that charts use supplied measurements and do not invent a baseline. They exercise visualization without training TensorFlow models. Full experiment validation requires running the pipeline after correcting the data-leakage boundaries.
+
+## Development & Quality
+
+```bash
+python -m compileall -q src tests
+python -m pip check
+```
+
+No CI workflow or production inference service is configured. Dependency ranges are not a lockfile. Keep historical artifacts distinct from new runs and record versions, seeds, splits, and dataset provenance with any new result.
+
+## Roadmap
+
+- Split before feature learning; fit target encodings using out-of-fold training labels.
+- Fit resampling and preprocessing inside each model-selection fold.
+- Add a reproducible baseline evaluated on the identical untouched holdout.
+- Separate post-release analysis from any future pre-release prediction task.
+
+## Contributing
+
+Include reproducible inputs and evaluation methodology with model changes. Run regression tests, preserve existing interfaces where practical, and avoid publishing performance comparisons without traceable measurements.
+
+## License
+
+Code is distributed under the [MIT License](LICENSE). Check the dataset's source terms before redistribution.
+
+## Author
+
+[Mustafa Arıkan](https://github.com/MustafArikan)
